@@ -15,8 +15,8 @@ Both methods use a DINOv2 Vision Transformer (ViT) as the backbone, fine-tuned w
 * **Modern Backbone** – Uses the strong DINOv2 transformer model.
 * **Efficient Fine-Tuning** – Trains only a small number of parameters using LoRA.
 * **Two Uncertainty Estimation Methods** – Supports both Evidential Deep Learning and MC Dropout.
-* **Comprehensive Evaluation** – Includes scripts for quantitative metrics (RMSE, AbsRel, $\delta_1$) and qualitative visualizations (depth maps, confidence maps, and error maps).
-* **Config-Based Design** – All experiments, parameters, and paths are managed using YAML config files for easy reproducibility.
+* **Evaluation** – Includes scripts for quantitative metrics (RMSE, AbsRel, $\delta_1$) and qualitative visualizations (depth maps, confidence maps, and error maps).
+* **Config-Based Design** – All experiments, parameters, and paths are managed using YAML config files.
 
 ---
 
@@ -115,7 +115,7 @@ This will:
 * Evaluate them on the test dataset.
 * Print overall metrics (RMSE, AbsRel, $\delta_1$, etc.).
 * Calculate the Spearman correlation between model confidence and RMSE.
-* Save a scatter plot (`rmse_vs_confidence.png`) in the output directory.
+* Save a scatter plot in the output directory.
 
 ---
 
