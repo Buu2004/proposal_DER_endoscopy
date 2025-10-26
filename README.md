@@ -1,4 +1,4 @@
-# Uncertainty-Aware Monocular Depth Estimation for Endoscopy
+# Evidential Regression for Reliable Depth Estimation in Surgical Endoscopy
 
 This repo provides code for training and testing uncertainty-aware monocular depth estimation models, designed for endoscopic surgical images.
 It compares two main approaches for estimating uncertainty:
