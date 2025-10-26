@@ -1,10 +1,12 @@
 torch
 torchvision
-opencv-python
 pandas
 numpy
+opencv-python
+matplotlib
+seaborn
+scipy
 tqdm
 tensorboard
 Pillow
-matplotlib
-scipy
+PyYAML

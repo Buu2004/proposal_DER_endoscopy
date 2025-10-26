@@ -1,0 +1,22 @@
+mode: "mc_dropout"
+output_dir: "checkpoints/"
+
+data:
+  train_file: "kaggle/input/mde-dataset-path/endoslam_train_files_with_gt_Colon.txt"
+  test_file: "kaggle/input/mde-dataset-path/endoslam_test_files_with_gt_Stomach.txt"
+  image_size: [224, 224]
+
+model:
+  backbone_size: "base"
+  r: 4
+  decode_type: "linear4"
+  dropout_p: 0.1 # active for this mode
+  lam: 0.2         # ignored by this mode
+
+training:
+  run_name: "mc_dropout_run_1" 
+  batch_size: 8
+  epochs: 10
+  lr: 1.0e-5
+  weight_decay: 1.0e-4
+  mc_iterations_val: 5

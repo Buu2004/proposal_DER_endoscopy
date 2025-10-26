@@ -1,0 +1,21 @@
+mode: "evidential"
+output_dir: "checkpoints/"
+
+data:
+  train_file: "kaggle/input/mde-dataset-path/endoslam_train_files_with_gt_Colon.txt"
+  test_file: "kaggle/input/mde-dataset-path/endoslam_test_files_with_gt_Stomach.txt"
+  image_size: [224, 224]
+
+model:
+  backbone_size: "base"
+  r: 4
+  decode_type: "linear4"
+  lam: 0.2
+
+training:
+  run_name: "evidential_run_1"
+  batch_size: 8
+  epochs: 10
+  lr: 1.0e-5
+  weight_decay: 1.0e-4
+  mc_iterations_val: 5 # will be ignored

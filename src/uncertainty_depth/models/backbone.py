@@ -3,14 +3,14 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from loss.evidential_loss import EvidentialLoss
+from src.uncertainty_depth.losses import EvidentialLoss
 from torch.nn.parameter import Parameter
 
-from .decode_head import decode_head_evidential
+from .decode_head import EvidentialDecodeHead, MCDropoutDecodeHead
 from .layers import _LoRA_qkv
 
 
-class SurgicalDINOEvidential(nn.Module):
+class SurgicalDINOUncertaintyModel(nn.Module):
     def __init__(
         self,
         backbone_size="base",
@@ -19,6 +19,8 @@ class SurgicalDINOEvidential(nn.Module):
         decode_type='linear4',
         lora_layer=None,
         lam=0.2,
+        mode='evidential',
+        dropout_p=0.1,
     ):
         super().__init__()
 
@@ -100,13 +102,29 @@ class SurgicalDINOEvidential(nn.Module):
             self.in_index = 0
             self.input_transform = "resize"
 
-        self.decode_head = decode_head_evidential(
-            image_shape=image_shape,
-            input_transform=self.input_transform,
-            in_index=self.in_index,
-            in_channels=self.inchannels,
-            channels=self.channels,
-        )
+        self.mode = mode
+        if self.mode == 'evidential':
+            self.decode_head = EvidentialDecodeHead(
+                image_shape=image_shape,
+                input_transform=self.input_transform,
+                in_index=self.in_index,
+                in_channels=self.inchannels,
+                channels=self.channels,
+            )
+            self.loss_fn = EvidentialLoss(lam=lam)
+
+        elif self.mode == 'mc_dropout':
+            self.decode_head = MCDropoutDecodeHead(
+                image_shape=image_shape,
+                input_transform=self.input_transform,
+                in_index=self.in_index,
+                in_channels=self.inchannels,
+                channels=self.channels,
+                dropout_p=dropout_p,
+            )
+            self.loss_fn = nn.L1Loss()
+        else:
+            raise ValueError(f"Unknown mode: {self.mode}")
 
     def reset_parameters(self):
         for w_A in self.w_As:
@@ -133,31 +151,48 @@ class SurgicalDINOEvidential(nn.Module):
             pixel_values, n=self.n, reshape=True, return_class_token=True, norm=False
         )
 
-        nig_params = self.decode_head(feature)
+        output = self.decode_head(feature)
 
         loss = None
-        if depth_gt is not None:
-            nig_params = F.interpolate(
-                nig_params,
-                size=depth_gt.shape[2:],
-                mode='bilinear',
-                align_corners=False,
-            )
-            loss_fn = EvidentialLoss(lam=0.2)
-            loss = loss_fn(nig_params, depth_gt)
-            loss = torch.mean(loss)
 
-        uncertainty_output = self.get_uncertainty(nig_params)
+        if self.mode == 'evidential':
+            nig_params = output  # Output is [B, 4, H, W]
+            if depth_gt is not None:
+                nig_params_interp = F.interpolate(
+                    nig_params,
+                    size=depth_gt.shape[2:],
+                    mode='bilinear',
+                    align_corners=False,
+                )
+                loss = self.loss_fn(nig_params_interp, depth_gt)
+                loss = torch.mean(loss)
 
-        return {
-            'loss': loss,
-            'predicted_depth': uncertainty_output['predicted_depth'],
-            'aleatoric_uncertainty': uncertainty_output['aleatoric_uncertainty'],
-            'epistemic_uncertainty': uncertainty_output['epistemic_uncertainty'],
-            'total_uncertainty': uncertainty_output['total_uncertainty'],
-            'evidence': uncertainty_output['evidence'],
-            'nig_parameters': nig_params,
-        }
+            uncertainty_output = self.get_uncertainty(nig_params)
+            return {
+                'loss': loss,
+                'predicted_depth': uncertainty_output['predicted_depth'],
+                'aleatoric_uncertainty': uncertainty_output['aleatoric_uncertainty'],
+                'epistemic_uncertainty': uncertainty_output['epistemic_uncertainty'],
+                'total_uncertainty': uncertainty_output['total_uncertainty'],
+                'evidence': uncertainty_output['evidence'],
+                'nig_parameters': nig_params,
+            }
+
+        elif self.mode == 'mc_dropout':
+            predicted_depth = output  # Output is [B, 1, H, W]
+            if depth_gt is not None:
+                predicted_depth_interp = F.interpolate(
+                    predicted_depth,
+                    size=depth_gt.shape[2:],
+                    mode='bilinear',
+                    align_corners=False,
+                )
+                loss = self.loss_fn(predicted_depth_interp, depth_gt)
+
+            return {
+                'loss': loss,
+                'predicted_depth': predicted_depth,
+            }
 
     def save_parameters(self, filename: str) -> None:
         assert filename.endswith(".pt") or filename.endswith('.pth')
