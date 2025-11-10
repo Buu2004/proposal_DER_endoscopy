@@ -111,7 +111,7 @@ class MCDropoutDecodeHead(nn.Module):
                 padding=1,
             ),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=dropout_p),
+            nn.Dropout2d(p=dropout_p),
             nn.Conv2d(
                 in_channels=channels // 4,
                 out_channels=1,

@@ -13,13 +13,13 @@ model:
 evaluation:
   run_evidential: true
   run_mc_dropout: true
-  evidential_checkpoint: "checkpoints/evidential_run_1/best_model.pth"
-  mc_dropout_checkpoint: "checkpoints/mc_dropout/model_epoch_2.pth"
+  evidential_checkpoint: "checkpoints/evidential/model_epoch_7.pth"
+  mc_dropout_checkpoint: "checkpoints/mc_dropout_run_1/model_epoch_6.pth"
   
-  mc_iterations: 20  # Num passes for final eval
+  mc_iterations: 50  # Num passes for final eval
   epsilon: 1.0e-6
   scatter_plot_name: "rmse_vs_confidence.png"
   
 plotting:
   output_dir: "results/qualitative_plots"
-  num_samples_to_plot: 20
+  num_samples_to_plot: 50

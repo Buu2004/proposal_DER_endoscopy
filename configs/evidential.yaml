@@ -18,4 +18,4 @@ training:
   epochs: 10
   lr: 1.0e-5
   weight_decay: 1.0e-4
-  mc_iterations_val: 5 # will be ignored
+  mc_iterations_val: 20 # will be ignored

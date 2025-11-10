@@ -77,6 +77,7 @@ def plot_qualitative_comparison(config):
         )
 
         mcd_raw_conf = 1.0 / (mcd_variance + epsilon)
+        # mcd_conf_norm = mcd_variance.max() - mcd_variance
         mcd_conf_norm = (mcd_raw_conf - mcd_raw_conf.min()) / (
             mcd_raw_conf.max() - mcd_raw_conf.min() + epsilon
         )
